@@ -3,25 +3,33 @@ package com.fetchchallange.tests;
 import com.fetchchallange.base.BaseTest;
 import org.openqa.selenium.By;
 
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.time.Duration;
+
 public class GoldBarTest extends BaseTest {
     @Test
-    public void findFakeGoldBar(){
+    public void findFakeGoldBar() {
         // Logic to find the fake gold bar
         int fakeBar = findFakeGoldBarAlgorithm();
+
+        // Print the fake bar
+        System.out.println("The fake gold bar is: " + fakeBar);
 
         // Click the button corresponding to the fake bar
         driver.findElement(By.xpath("//button[text()='" + fakeBar + "']")).click();
 
         // Get and validate the alert message
         String alertMessage = driver.switchTo().alert().getText();
+        System.out.println(alertMessage);
         Assert.assertTrue(alertMessage.contains("Yay"), "Expected success alert, but got: " + alertMessage);
 
         // Accept the alert
         driver.switchTo().alert().accept();
-
     }
 
     public int findFakeGoldBarAlgorithm() {
@@ -31,6 +39,7 @@ public class GoldBarTest extends BaseTest {
 
         // Perform first weighing (group1 vs group2)
         String result = performWeighing(group1, group2);
+
         if (result.equals("=")) {
             return weighIndividualBars(group3);
         } else if (result.equals("<")) {
@@ -38,6 +47,7 @@ public class GoldBarTest extends BaseTest {
         } else {
             return weighIndividualBars(group2);
         }
+
     }
 
     private String performWeighing(int[] leftBowl, int[] rightBowl) {
@@ -52,14 +62,17 @@ public class GoldBarTest extends BaseTest {
             driver.findElement(By.id("right_" + i)).sendKeys(String.valueOf(rightBowl[i]));
         }
 
+
         // Click the weigh button
         driver.findElement(By.id("weigh")).click();
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+
+        // Get the result element
+        WebElement resultElement = driver.findElement(By.id("reset"));
+
+        // Wait until result appears
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(resultElement, "?")));
 
         // Get the result of the weighing
         return driver.findElement(By.id("reset")).getText();
@@ -79,5 +92,4 @@ public class GoldBarTest extends BaseTest {
             return group[1];  // The second bar is lighter
         }
     }
-
 }
